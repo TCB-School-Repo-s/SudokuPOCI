@@ -10,7 +10,6 @@
             //sud.Swap(0, 0, 2);
             sud.Generate();
 
-
             Console.WriteLine(sud.ToString());
 
         }
