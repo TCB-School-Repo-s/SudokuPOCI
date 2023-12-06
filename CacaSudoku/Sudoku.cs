@@ -42,7 +42,7 @@ namespace CacaSudoku
         private (int, Boolean)[][] puzzle = new (int, Boolean)[9][];
         private int[,] evalMatrix = new int[2, 9];
 
-        public Sudoku((int, Boolean)[] first, (int, Boolean)[] second, (int, Boolean)[] third, (int, Boolean)[] fourth, (int, Boolean)[] fifth, (int, Boolean)[] sixth, (int, Boolean)[] seventh, (int, Boolean)[] eight, (int, Boolean)[] ninth)
+        public Sudoku((int, Boolean)[] first, (int, Boolean)[] second, (int, Boolean)[] third, (int, Boolean)[] fourth, (int, Boolean)[] fifth, (int, Boolean)[] sixth, (int, Boolean)[] seventh, (int, Boolean)[] eighth, (int, Boolean)[] ninth)
         {
             puzzle[0] = first;
             puzzle[1] = second;
@@ -51,18 +51,23 @@ namespace CacaSudoku
             puzzle[4] = fifth;
             puzzle[5] = sixth;
             puzzle[6] = seventh;
-            puzzle[7] = eight;
+            puzzle[7] = eighth;
             puzzle[8] = ninth;
         }
 
         public Sudoku((int, Boolean)[][] puzzle)
         {
             this.puzzle = puzzle;
-        } 
+        }
 
         public (int, Boolean)[][] Puzzle
         {
             get { return puzzle; }
+        }
+
+        public void GetColRow()
+        {
+            
         }
 
         /// <summary>
@@ -95,7 +100,7 @@ namespace CacaSudoku
          *  [6][6, 7, 8]   [7][6, 7, 8]  [8][6, 7, 8]
         */
 
-       
+
         /// <summary>
         /// 
         /// </summary>
@@ -122,7 +127,7 @@ namespace CacaSudoku
             {
                 {puzzle[0][0].Item1, puzzle[0][1].Item1, puzzle[0][2].Item1, puzzle[1][0].Item1, puzzle[1][1].Item1, puzzle[1][2].Item1, puzzle[2][0].Item1, puzzle[2][1].Item1, puzzle[2][2].Item1}, // row 0
                 {puzzle[0][3].Item1, puzzle[0][4].Item1, puzzle[0][5].Item1, puzzle[1][3].Item1, puzzle[1][4].Item1, puzzle[1][5].Item1, puzzle[2][3].Item1, puzzle[2][4].Item1, puzzle[2][5].Item1}, // row 1
-                {puzzle[0][6].Item1, puzzle[0][7].Item1, puzzle[0][8].Item1, puzzle[1][6].Item1, puzzle[1][7].Item1, puzzle[1][8].Item1, puzzle[1][6].Item1, puzzle[0][7].Item1, puzzle[0][8].Item1}, // row 2
+                {puzzle[0][6].Item1, puzzle[0][7].Item1, puzzle[0][8].Item1, puzzle[1][6].Item1, puzzle[1][7].Item1, puzzle[1][8].Item1, puzzle[2][6].Item1, puzzle[2][7].Item1, puzzle[2][8].Item1}, // row 2
                 {puzzle[3][0].Item1, puzzle[3][1].Item1, puzzle[3][2].Item1, puzzle[4][0].Item1, puzzle[4][1].Item1, puzzle[4][2].Item1, puzzle[5][0].Item1, puzzle[5][1].Item1, puzzle[5][2].Item1}, // row 3
                 {puzzle[3][3].Item1, puzzle[3][4].Item1, puzzle[3][5].Item1, puzzle[4][3].Item1, puzzle[4][4].Item1, puzzle[4][5].Item1, puzzle[5][3].Item1, puzzle[5][4].Item1, puzzle[5][5].Item1}, // row 4
                 {puzzle[3][6].Item1, puzzle[3][7].Item1, puzzle[3][8].Item1, puzzle[4][6].Item1, puzzle[4][7].Item1, puzzle[4][8].Item1, puzzle[5][6].Item1, puzzle[5][7].Item1, puzzle[5][8].Item1}, // row 5
@@ -132,7 +137,7 @@ namespace CacaSudoku
             };
 
             for (int row = 0; row < 9; row++)
-            {                 
+            {
                 int[] Row = Enumerable.Range(0, puzzleArray.GetUpperBound(1) + 1).Select(i => puzzleArray[row, i]).ToArray();
                 evalMatrix[0, row] = CountIncorrect(Row);
             }
@@ -140,14 +145,14 @@ namespace CacaSudoku
             for (int col = 0; col < 9; col++)
             {
                 int[] column = new int[9];
-                for(int row = 0; row < 9; row++)
+                for (int row = 0; row < 9; row++)
                 {
-                    column[row] = puzzleArray[row,col];
+                    column[row] = puzzleArray[row, col];
                 }
 
                 evalMatrix[1, col] = CountIncorrect(column);
             }
-            
+
         }
 
         public int CountIncorrect(int[] puzzelstukjes)
@@ -158,9 +163,9 @@ namespace CacaSudoku
 
             foreach (var value in puzzelstukjes)
             {
-                if(!seen.Add(value))
+                if (!seen.Add(value))
                 {
-                   incorrectCount++;
+                    incorrectCount++;
                 }
             }
 
@@ -203,6 +208,7 @@ namespace CacaSudoku
 
             }
 
+            Print();
             Evaluate();
         }
 
@@ -229,13 +235,35 @@ namespace CacaSudoku
             return sb.ToString();
         }
 
+        public void Print() {
+            Console.WriteLine("*|-A-|-B-|-C-|-D-|-E-|-F-|-G-|-H-|-I-|*");
+            Console.WriteLine($"0| {puzzle[0][0].Item1} | {puzzle[0][1].Item1} | {puzzle[0][2].Item1} | {puzzle[1][0].Item1} | {puzzle[1][1].Item1} | {puzzle[1][2].Item1} | {puzzle[2][0].Item1} | {puzzle[2][1].Item1} | {puzzle[2][2].Item1} |");
+            Console.WriteLine(" |---|---|---|---|---|---|---|---|---|");
+            Console.WriteLine($"1| {puzzle[0][3].Item1} | {puzzle[0][4].Item1} | {puzzle[0][5].Item1} | {puzzle[1][3].Item1} | {puzzle[1][4].Item1} | {puzzle[1][5].Item1} | {puzzle[2][3].Item1} | {puzzle[2][4].Item1} | {puzzle[2][5].Item1} |");
+            Console.WriteLine(" |---|---|---|---|---|---|---|---|---|");
+            Console.WriteLine($"2| {puzzle[0][6].Item1} | {puzzle[0][7].Item1} | {puzzle[0][8].Item1} | {puzzle[1][6].Item1} | {puzzle[1][7].Item1} | {puzzle[1][8].Item1} | {puzzle[2][6].Item1} | {puzzle[2][7].Item1} | {puzzle[2][8].Item1} |");
+            Console.WriteLine(" |---|---|---|---|---|---|---|---|---|");
+            Console.WriteLine($"3| {puzzle[3][0].Item1} | {puzzle[3][1].Item1} | {puzzle[3][2].Item1} | {puzzle[4][0].Item1} | {puzzle[4][1].Item1} | {puzzle[4][2].Item1} | {puzzle[5][0].Item1} | {puzzle[5][1].Item1} | {puzzle[5][2].Item1} |");
+            Console.WriteLine(" |---|---|---|---|---|---|---|---|---|");
+            Console.WriteLine($"4| {puzzle[3][3].Item1} | {puzzle[3][4].Item1} | {puzzle[3][5].Item1} | {puzzle[4][3].Item1} | {puzzle[4][4].Item1} | {puzzle[4][5].Item1} | {puzzle[5][3].Item1} | {puzzle[5][4].Item1} | {puzzle[5][5].Item1} |");
+            Console.WriteLine(" |---|---|---|---|---|---|---|---|---|");
+            Console.WriteLine($"5| {puzzle[3][6].Item1} | {puzzle[3][7].Item1} | {puzzle[3][8].Item1} | {puzzle[4][6].Item1} | {puzzle[4][7].Item1} | {puzzle[4][8].Item1} | {puzzle[5][6].Item1} | {puzzle[5][7].Item1} | {puzzle[5][8].Item1} |");
+            Console.WriteLine(" |---|---|---|---|---|---|---|---|---|");
+            Console.WriteLine($"6| {puzzle[6][0].Item1} | {puzzle[6][1].Item1} | {puzzle[6][2].Item1} | {puzzle[7][0].Item1} | {puzzle[7][1].Item1} | {puzzle[7][2].Item1} | {puzzle[8][0].Item1} | {puzzle[8][1].Item1} | {puzzle[8][2].Item1} |");
+            Console.WriteLine(" |---|---|---|---|---|---|---|---|---|");
+            Console.WriteLine($"7| {puzzle[6][3].Item1} | {puzzle[6][4].Item1} | {puzzle[6][5].Item1} | {puzzle[7][3].Item1} | {puzzle[7][4].Item1} | {puzzle[7][5].Item1} | {puzzle[8][3].Item1} | {puzzle[8][4].Item1} | {puzzle[8][5].Item1} |");
+            Console.WriteLine(" |---|---|---|---|---|---|---|---|---|");
+            Console.WriteLine($"8| {puzzle[6][6].Item1} | {puzzle[6][7].Item1} | {puzzle[6][8].Item1} | {puzzle[7][6].Item1} | {puzzle[7][7].Item1} | {puzzle[7][8].Item1} | {puzzle[8][6].Item1} | {puzzle[8][7].Item1} | {puzzle[8][8].Item1} |");
+            Console.WriteLine("*|---|---|---|---|---|---|---|---|---|");
+        }
 
-        /// <summary>
-        /// Method <c>FromString</c> generates a sudoku object from a string.
-        /// </summary>
-        /// <param name="str">The string to generate sudoku from</param>
-        /// <returns>Sudoku object</returns>
-        public static Sudoku FromString(string str)
+
+    /// <summary>
+    /// Method <c>FromString</c> generates a sudoku object from a string.
+    /// </summary>
+    /// <param name="str">The string to generate sudoku from</param>
+    /// <returns>Sudoku object</returns>
+    public static Sudoku FromString(string str)
         {
             // Remove any whitespace from the input string
             str = str.Replace(" ", "");
@@ -263,5 +291,21 @@ namespace CacaSudoku
             return new Sudoku(pussie[0], pussie[1], pussie[2], pussie[3], pussie[4], pussie[5], pussie[6], pussie[7], pussie[8]);
         }
 
+
+        public void HillClimbingSearch(int p)
+        {
+            Tuple<Pair<int, Boolean>, Pair<int, Boolean>> BestSwap = new Tuple<Pair, Pair>(Pair<int, Boolean> getal1, Pair<int, Boolean> getal2); // look away dit is zeker valide code
+
+            for (int i = 0; i < 9; i++)
+            {
+                for (int j = 0; j < 9; j++)
+                {
+                    Swap(p, i, j); //
+                    eval = Evaluate();
+                    eval[i][j] = ;
+
+                }
+            }
+        }
     }
 }
