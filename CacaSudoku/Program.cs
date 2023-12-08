@@ -9,9 +9,11 @@
 
             //sud.Swap(0, 0, 2);
             sud.Generate();
+            sud.Print();
 
-            Console.WriteLine(sud.ToString());
+            sud.HillClimbingSearch(30);
 
+            sud.Print();
         }
     }
 }

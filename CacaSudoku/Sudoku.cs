@@ -65,11 +65,6 @@ namespace CacaSudoku
             get { return puzzle; }
         }
 
-        public void GetColRow()
-        {
-            
-        }
-
         /// <summary>
         /// Method <c>Swap</c> swaps the two given indexes of puzzle p;
         /// If the boolean is False you can swap the indexes.
@@ -77,12 +72,28 @@ namespace CacaSudoku
         /// <param name="p">Which block you want to swap in</param>
         /// <param name="i">First number you want to swap</param>
         /// <param name="j">Second number you want to swap</param>
-        public void Swap(int p, int i, int j)
+        public void Swap(int p, int i, int j, Boolean eval = true)
         {
-            if (this.puzzle[p][i].Item2 == false && this.puzzle[p][j].Item2 == false)
+            if (this.puzzle[p][j].Item2 == false)
             {
                 (this.puzzle[p][i], this.puzzle[p][j]) = (this.puzzle[p][j], this.puzzle[p][i]);
+
+                int[,] update = Update(p, i, j);
+
+                if (update.Cast<int>().Sum() > evalMatrix.Cast<int>().Sum() && eval)
+                {
+                    (this.puzzle[p][i], this.puzzle[p][j]) = (this.puzzle[p][j], this.puzzle[p][i]);
+                }
+                else if(update.Cast<int>().Sum() <= evalMatrix.Cast<int>().Sum() && eval)
+                {
+                    evalMatrix = update;
+                }
+                else
+                {
+                    evalMatrix = update;
+                }
             }
+            Console.WriteLine($"Score: {evalMatrix.Cast<int>().Sum()}");
         }
 
         /*  Representation of how the puzzle array is created.
@@ -106,23 +117,7 @@ namespace CacaSudoku
         /// </summary>
         private void Evaluate()
         {
-            /*int[][] rows = new int[3][] {new int[3] { 0, 1, 2 }, new int[3] { 3, 4, 5 }, new int[3] { 6, 7, 8 } };
-            int[][] columns = new int[3][] { new int[3] { 0, 3, 6 }, new int[3] { 1, 4, 7 }, new int[3] { 2, 5, 8 } };
-            List<int> Row2 = new List<int> { 3, 4, 5 };
-            List<int> Row3 = new List<int> { 6, 7, 8 };
-            List<int> Column1 = new List<int> { 0, 3, 6 };
-            List<int> Column2 = new List<int> { 1, 4, 7 };
-            List<int> Column3 = new List<int> { 2, 5, 8 };
-
-            int total = 0;
-            foreach (int i in Row1)
-            {
-                foreach (int j in Row1)
-                {
-                    puzzle[i][j];
-                }
-            }*/
-
+     
             int[,] puzzleArray =
             {
                 {puzzle[0][0].Item1, puzzle[0][1].Item1, puzzle[0][2].Item1, puzzle[1][0].Item1, puzzle[1][1].Item1, puzzle[1][2].Item1, puzzle[2][0].Item1, puzzle[2][1].Item1, puzzle[2][2].Item1}, // row 0
@@ -173,9 +168,47 @@ namespace CacaSudoku
         }
 
         // updates the evaluation
-        public void Update()
+        public int[,] Update(int p, int i, int j)
         {
+            int[,] puzzleArray =
+            {
+                {puzzle[0][0].Item1, puzzle[0][1].Item1, puzzle[0][2].Item1, puzzle[1][0].Item1, puzzle[1][1].Item1, puzzle[1][2].Item1, puzzle[2][0].Item1, puzzle[2][1].Item1, puzzle[2][2].Item1}, // row 0
+                {puzzle[0][3].Item1, puzzle[0][4].Item1, puzzle[0][5].Item1, puzzle[1][3].Item1, puzzle[1][4].Item1, puzzle[1][5].Item1, puzzle[2][3].Item1, puzzle[2][4].Item1, puzzle[2][5].Item1}, // row 1
+                {puzzle[0][6].Item1, puzzle[0][7].Item1, puzzle[0][8].Item1, puzzle[1][6].Item1, puzzle[1][7].Item1, puzzle[1][8].Item1, puzzle[2][6].Item1, puzzle[2][7].Item1, puzzle[2][8].Item1}, // row 2
+                {puzzle[3][0].Item1, puzzle[3][1].Item1, puzzle[3][2].Item1, puzzle[4][0].Item1, puzzle[4][1].Item1, puzzle[4][2].Item1, puzzle[5][0].Item1, puzzle[5][1].Item1, puzzle[5][2].Item1}, // row 3
+                {puzzle[3][3].Item1, puzzle[3][4].Item1, puzzle[3][5].Item1, puzzle[4][3].Item1, puzzle[4][4].Item1, puzzle[4][5].Item1, puzzle[5][3].Item1, puzzle[5][4].Item1, puzzle[5][5].Item1}, // row 4
+                {puzzle[3][6].Item1, puzzle[3][7].Item1, puzzle[3][8].Item1, puzzle[4][6].Item1, puzzle[4][7].Item1, puzzle[4][8].Item1, puzzle[5][6].Item1, puzzle[5][7].Item1, puzzle[5][8].Item1}, // row 5
+                {puzzle[6][0].Item1, puzzle[6][1].Item1, puzzle[6][2].Item1, puzzle[7][0].Item1, puzzle[7][1].Item1, puzzle[7][2].Item1, puzzle[8][0].Item1, puzzle[8][1].Item1, puzzle[8][2].Item1}, // row 6
+                {puzzle[6][3].Item1, puzzle[6][4].Item1, puzzle[6][5].Item1, puzzle[7][3].Item1, puzzle[7][4].Item1, puzzle[7][5].Item1, puzzle[8][3].Item1, puzzle[8][4].Item1, puzzle[8][5].Item1}, // row 7
+                {puzzle[6][6].Item1, puzzle[6][7].Item1, puzzle[6][8].Item1, puzzle[7][6].Item1, puzzle[7][7].Item1, puzzle[7][8].Item1, puzzle[8][6].Item1, puzzle[8][7].Item1, puzzle[8][8].Item1}  // row 8
+            };
 
+            int[,] copyEval = (int[,]) evalMatrix.Clone();
+
+            int rowI = p / 3 * 3 + i / 3;
+            int columnI = p % 3 * 3 + i % 3;
+
+            int[] RowI = Enumerable.Range(0, puzzleArray.GetUpperBound(1) + 1).Select(q => puzzleArray[rowI, q]).ToArray();
+            int[] ColumnI = new int[9];
+            for (int row = 0; row < 9; row++)
+            {
+                ColumnI[row] = puzzleArray[row, columnI];
+            }
+            copyEval[0, rowI] = CountIncorrect(RowI);
+            copyEval[1, columnI] = CountIncorrect(ColumnI);
+
+            int rowJ = p / 3 * 3 + j / 3;
+            int columnJ = p % 3 * 3 + j % 3;
+
+            int[] RowJ = Enumerable.Range(0, puzzleArray.GetUpperBound(1) + 1).Select(q => puzzleArray[rowJ, q]).ToArray();
+            int[] ColumnJ = new int[9];
+            for (int row = 0; row < 9; row++)
+            {
+                ColumnJ[row] = puzzleArray[row, columnJ];
+            }
+            copyEval[0, rowJ] = CountIncorrect(RowJ);
+            copyEval[0, columnJ] = CountIncorrect(ColumnJ);
+            return copyEval;
         }
 
         /// <summary>
@@ -210,6 +243,25 @@ namespace CacaSudoku
 
             Print();
             Evaluate();
+        }
+
+        public void Test()
+        {
+            int[,] puzzleArray =
+            {
+                {puzzle[0][0].Item1, puzzle[0][1].Item1, puzzle[0][2].Item1, puzzle[1][0].Item1, puzzle[1][1].Item1, puzzle[1][2].Item1, puzzle[2][0].Item1, puzzle[2][1].Item1, puzzle[2][2].Item1}, // row 0
+                {puzzle[0][3].Item1, puzzle[0][4].Item1, puzzle[0][5].Item1, puzzle[1][3].Item1, puzzle[1][4].Item1, puzzle[1][5].Item1, puzzle[2][3].Item1, puzzle[2][4].Item1, puzzle[2][5].Item1}, // row 1
+                {puzzle[0][6].Item1, puzzle[0][7].Item1, puzzle[0][8].Item1, puzzle[1][6].Item1, puzzle[1][7].Item1, puzzle[1][8].Item1, puzzle[2][6].Item1, puzzle[2][7].Item1, puzzle[2][8].Item1}, // row 2
+                {puzzle[3][0].Item1, puzzle[3][1].Item1, puzzle[3][2].Item1, puzzle[4][0].Item1, puzzle[4][1].Item1, puzzle[4][2].Item1, puzzle[5][0].Item1, puzzle[5][1].Item1, puzzle[5][2].Item1}, // row 3
+                {puzzle[3][3].Item1, puzzle[3][4].Item1, puzzle[3][5].Item1, puzzle[4][3].Item1, puzzle[4][4].Item1, puzzle[4][5].Item1, puzzle[5][3].Item1, puzzle[5][4].Item1, puzzle[5][5].Item1}, // row 4
+                {puzzle[3][6].Item1, puzzle[3][7].Item1, puzzle[3][8].Item1, puzzle[4][6].Item1, puzzle[4][7].Item1, puzzle[4][8].Item1, puzzle[5][6].Item1, puzzle[5][7].Item1, puzzle[5][8].Item1}, // row 5
+                {puzzle[6][0].Item1, puzzle[6][1].Item1, puzzle[6][2].Item1, puzzle[7][0].Item1, puzzle[7][1].Item1, puzzle[7][2].Item1, puzzle[8][0].Item1, puzzle[8][1].Item1, puzzle[8][2].Item1}, // row 6
+                {puzzle[6][3].Item1, puzzle[6][4].Item1, puzzle[6][5].Item1, puzzle[7][3].Item1, puzzle[7][4].Item1, puzzle[7][5].Item1, puzzle[8][3].Item1, puzzle[8][4].Item1, puzzle[8][5].Item1}, // row 7
+                {puzzle[6][6].Item1, puzzle[6][7].Item1, puzzle[6][8].Item1, puzzle[7][6].Item1, puzzle[7][7].Item1, puzzle[7][8].Item1, puzzle[8][6].Item1, puzzle[8][7].Item1, puzzle[8][8].Item1}  // row 8
+            };
+
+            Console.WriteLine($"puzzle: ${puzzle[0][4].Item1}");
+            //Console.WriteLine($"puzzlearray: ${puzzleArray[, ]}");
         }
 
         /// <summary>
@@ -292,20 +344,52 @@ namespace CacaSudoku
         }
 
 
-        public void HillClimbingSearch(int p)
+        public void HillClimbingSearch(int s, int repAllowed = 10)
         {
-            Tuple<Pair<int, Boolean>, Pair<int, Boolean>> BestSwap = new Tuple<Pair, Pair>(Pair<int, Boolean> getal1, Pair<int, Boolean> getal2); // look away dit is zeker valide code
-
-            for (int i = 0; i < 9; i++)
+            int rep = 0;
+            int sDone = 0;
+            int lastScore = evalMatrix.Cast<int>().Sum();
+            Random rd = new Random();
+            while (lastScore != 0)
             {
-                for (int j = 0; j < 9; j++)
-                {
-                    Swap(p, i, j); //
-                    eval = Evaluate();
-                    eval[i][j] = ;
+                
+                
+                int blokIndex = rd.Next(0, 9);
 
+                if (rep < repAllowed)
+                {
+                    for (int i = 0; i < 9; i++)
+                    {
+                        if (puzzle[blokIndex][i].Item2 == false)
+                        {
+                            for (int j = 0; j < 9; j++)
+                            {
+                                Swap(blokIndex, i, j);
+                            }
+                        }
+                    }
+                   
+                }
+                else
+                {
+                    if(sDone <= s)
+                    {
+                        for (int i = 0; i < 9; i++)
+                        {
+                            if (puzzle[blokIndex][i].Item2 == false)
+                            {
+                                for (int j = 0; j < 9; j++)
+                                {
+                                    Swap(blokIndex, i, j, false);
+                                }
+                            }
+                        }
+                        sDone = (sDone == s) ? sDone = 0 : sDone+1;
+                    }
                 }
             }
+
+            rep = (evalMatrix.Cast<int>().Sum() == lastScore) ? rep + 1 : rep = 0;
         }
     }
 }
