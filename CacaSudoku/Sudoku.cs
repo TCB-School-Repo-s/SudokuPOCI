@@ -275,7 +275,7 @@ namespace CacaSudoku
             Console.WriteLine("*|---|---|---|---|---|---|---|---|---|");
         }
 
-        public void HillClimbingSearch(int s, int repAllowed = 10)
+        public void HillClimbingSearch(int s, int repAllowed = 100)
         {
             int rep = 0;
             int sDone = 0;
@@ -283,8 +283,8 @@ namespace CacaSudoku
             Random rd = new Random();
             while (lastScore != 0)
             {
-                
-                
+
+                lastScore = evalMatrix.Cast<int>().Sum();
                 int blokIndex = rd.Next(0, 9);
 
                 if (rep < repAllowed)
@@ -318,7 +318,7 @@ namespace CacaSudoku
                         sDone = (sDone == s) ? sDone = 0 : sDone+1;
                     }
                 }
-
+                
                 rep = (evalMatrix.Cast<int>().Sum() == lastScore) ? rep + 1 : rep = 0;
                 Console.WriteLine($"BIG REPUTATION: {rep}, sdone: {sDone}");
             }
