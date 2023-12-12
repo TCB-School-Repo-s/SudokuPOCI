@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Timers;
 using static CacaSudoku.Util;
 
 namespace CacaSudoku
@@ -69,36 +70,20 @@ namespace CacaSudoku
 
                 int[,] update = Update(p, i, j);
 
-                if (update.Cast<int>().Sum() > evalMatrix.Cast<int>().Sum() && eval)
+                if (GetScore(update) > GetScore(evalMatrix) && eval)
                 {
                     (this.puzzle[p / 3 * 3 + i / 3, p % 3 * 3 + i % 3], this.puzzle[p / 3 * 3 + j / 3, p % 3 * 3 + j % 3]) = (this.puzzle[p / 3 * 3 + j / 3, p % 3 * 3 + j % 3], this.puzzle[p / 3 * 3 + i / 3, p % 3 * 3 + i % 3]);
                 }
-                else if(update.Cast<int>().Sum() <= evalMatrix.Cast<int>().Sum() && eval)
+                else if(GetScore(update) <= GetScore(evalMatrix) && eval)
                 {
-                    evalMatrix = update;
+                    evalMatrix = (int[,]) update.Clone();
                 }
                 else
                 {
-                    evalMatrix = update;
+                    evalMatrix = (int[,])update.Clone();
                 }
             }
-            Console.WriteLine($"Score: {evalMatrix.Cast<int>().Sum()}");
         }
-
-        /*  Representation of how the puzzle array is created.
-         * 
-         *  [0][0, 1, 2]   [1][0, 1, 2]  [2][0, 1, 2]
-         *  [0][3, 4, 5]   [1][3, 4, 5]  [2][3, 4, 5]
-         *  [0][6, 7, 8]   [1][6, 7, 8]  [2][6, 7, 8]
-         *
-         *  [3][0, 1, 2]   [4][0, 1, 2]  [5][0, 1, 2]
-         *  [3][3, 4, 5]   [4][3, 4, 5]  [5][3, 4, 5]
-         *  [3][6, 7, 8]   [4][6, 7, 8]  [5][6, 7, 8]
-         *
-         *  [6][0, 1, 2]   [7][0, 1, 2]  [8][0, 1, 2]
-         *  [6][3, 4, 5]   [7][3, 4, 5]  [8][3, 4, 5]
-         *  [6][6, 7, 8]   [7][6, 7, 8]  [8][6, 7, 8]
-        */
 
 
         /// <summary>
@@ -126,13 +111,13 @@ namespace CacaSudoku
 
         }
 
-        public int CountIncorrect(int[] puzzelstukjes)
+        public int CountIncorrect(int[] RowCol)
         {
 
             HashSet<int> seen = new HashSet<int>();
             int incorrectCount = 0;
 
-            foreach (var value in puzzelstukjes)
+            foreach (var value in RowCol)
             {
                 if (!seen.Add(value))
                 {
@@ -146,8 +131,6 @@ namespace CacaSudoku
         // updates the evaluation
         public int[,] Update(int p, int i, int j)
         {
-            
-
             int[,] copyEval = (int[,]) evalMatrix.Clone();
 
             int rowI = p / 3 * 3 + i / 3;
@@ -172,7 +155,7 @@ namespace CacaSudoku
                 ColumnJ[row] = puzzle[row, columnJ].Item1;
             }
             copyEval[0, rowJ] = CountIncorrect(RowJ);
-            copyEval[0, columnJ] = CountIncorrect(ColumnJ);
+            copyEval[1, columnJ] = CountIncorrect(ColumnJ);
             return copyEval;
         }
 
@@ -269,22 +252,23 @@ namespace CacaSudoku
             Console.WriteLine(" |---|---|---|---|---|---|---|---|---|");
             Console.WriteLine($"0| {puzzle[6, 0].Item1} | {puzzle[6, 1].Item1} | {puzzle[6, 2].Item1} | {puzzle[6, 3].Item1} | {puzzle[6, 4].Item1} | {puzzle[6, 5].Item1} | {puzzle[6, 6].Item1} | {puzzle[6, 7].Item1} | {puzzle[6, 8].Item1} |");
             Console.WriteLine(" |---|---|---|---|---|---|---|---|---|");
-            Console.WriteLine($"0| {puzzle[1, 0].Item1} | {puzzle[7, 1].Item1} | {puzzle[7, 2].Item1} | {puzzle[7, 3].Item1} | {puzzle[7, 4].Item1} | {puzzle[7, 5].Item1} | {puzzle[7, 6].Item1} | {puzzle[7, 7].Item1} | {puzzle[7, 8].Item1} |");
+            Console.WriteLine($"0| {puzzle[7, 0].Item1} | {puzzle[7, 1].Item1} | {puzzle[7, 2].Item1} | {puzzle[7, 3].Item1} | {puzzle[7, 4].Item1} | {puzzle[7, 5].Item1} | {puzzle[7, 6].Item1} | {puzzle[7, 7].Item1} | {puzzle[7, 8].Item1} |");
             Console.WriteLine(" |---|---|---|---|---|---|---|---|---|");
             Console.WriteLine($"0| {puzzle[8, 0].Item1} | {puzzle[8, 1].Item1} | {puzzle[8, 2].Item1} | {puzzle[8, 3].Item1} | {puzzle[8, 4].Item1} | {puzzle[8, 5].Item1} | {puzzle[8, 6].Item1} | {puzzle[8, 7].Item1} | {puzzle[8, 8].Item1} |");
             Console.WriteLine("*|---|---|---|---|---|---|---|---|---|");
         }
 
-        public void HillClimbingSearch(int s, int repAllowed = 100)
+        public void IteraredLocalSearch(int s, int repAllowed = 10, bool verbose = false)
         {
+            DateTime start = DateTime.Now;
             int rep = 0;
             int sDone = 0;
-            int lastScore = evalMatrix.Cast<int>().Sum();
+            int lastScore = GetScore(evalMatrix);
             Random rd = new Random();
-            while (lastScore != 0)
+            while (GetScore(evalMatrix) != 0)
             {
 
-                lastScore = evalMatrix.Cast<int>().Sum();
+                lastScore = GetScore(evalMatrix);
                 int blokIndex = rd.Next(0, 9);
 
                 if (rep < repAllowed)
@@ -318,13 +302,34 @@ namespace CacaSudoku
                         sDone = (sDone == s) ? sDone = 0 : sDone+1;
                     }
                 }
-                
-                rep = (evalMatrix.Cast<int>().Sum() == lastScore) ? rep + 1 : rep = 0;
-                Console.WriteLine($"BIG REPUTATION: {rep}, sdone: {sDone}");
+
+                int score = GetScore(evalMatrix);
+                rep = (score == lastScore) ? rep + 1 : rep = 0;
+                if (verbose) Console.WriteLine($"Score: {score}");
+            }
+            DateTime end = DateTime.Now;
+            TimeSpan result = end - start;
+
+            Console.WriteLine($"Solution found! Time taken: {result.Milliseconds} ms \n");
+        }
+
+
+        public int GetScore(int[,] arr)
+        {
+            int sum = 0;
+
+            // Iterate through rows
+            for (int i = 0; i < arr.GetLength(0); i++)
+            {
+                // Iterate through columns
+                for (int j = 0; j < arr.GetLength(1); j++)
+                {
+                    // Add the current element to the sum
+                    sum += arr[i, j];
+                }
             }
 
-
-           
+            return sum;
         }
     }
 }

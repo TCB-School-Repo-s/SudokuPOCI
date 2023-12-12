@@ -9,9 +9,9 @@
 
             //sud.Swap(0, 0, 2);
             sud.Generate();
-            sud.Print();
+            //sud.Print();
 
-            sud.HillClimbingSearch(30);
+            sud.IteraredLocalSearch(100);
 
             sud.Print();
         }
