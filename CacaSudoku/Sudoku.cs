@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -42,6 +43,7 @@ namespace CacaSudoku
 
         private (int, Boolean)[,] puzzle = new (int, Boolean)[9,9];
         private int[,] evalMatrix = new int[2, 9];
+        private int timeTaken = 0;
 
         public Sudoku(int[,] puzzle)
         {
@@ -190,7 +192,7 @@ namespace CacaSudoku
                 }
             }
 
-            Print();
+
             Evaluate();
         }
 
@@ -260,7 +262,8 @@ namespace CacaSudoku
 
         public void IteraredLocalSearch(int s, int repAllowed = 10, bool verbose = false)
         {
-            DateTime start = DateTime.Now;
+            var watch = new Stopwatch();
+            watch.Start();
             int rep = 0;
             int sDone = 0;
             int lastScore = GetScore(evalMatrix);
@@ -307,10 +310,16 @@ namespace CacaSudoku
                 rep = (score == lastScore) ? rep + 1 : rep = 0;
                 if (verbose) Console.WriteLine($"Score: {score}");
             }
-            DateTime end = DateTime.Now;
-            TimeSpan result = end - start;
+            //DateTime end = DateTime.Now;
+            //TimeSpan result = end - start;
+            watch.Stop();
+            timeTaken = (int)watch.ElapsedMilliseconds;
+            Console.WriteLine($"Solution found! Time taken: {timeTaken} ms \n");
+        }
 
-            Console.WriteLine($"Solution found! Time taken: {result.Milliseconds} ms \n");
+        public int TimeTaken
+        {
+            get { return timeTaken; }
         }
 
 

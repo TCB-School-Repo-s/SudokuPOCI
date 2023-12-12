@@ -7,7 +7,7 @@
             string input = Console.ReadLine();
             Sudoku sud = Sudoku.FromString(input);
 
-            //sud.Swap(0, 0, 2);
+            sud.Print();
             sud.Generate();
             //sud.Print();
 
