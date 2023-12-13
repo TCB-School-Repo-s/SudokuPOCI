@@ -18,9 +18,9 @@ namespace CacaSudoku
             /* We testen de snelheid en efficientie van het algoritme voor verschillende waarden van s, repAllowed 
              * en we voeren het voor elke sudoku 10 keer uit om tot een goed gemiddelde te komen van hoelang hij er over doet om het op te lossen.
              * */
-            for (int s = 10; s <= 100; s+=10) // s waardes [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+            for (int s = 2; s <= 1024; s) // s waardes [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
             {
-                for(int repAllowed = 5; repAllowed <= 30; repAllowed += 5) // rep allowed [5, 10, 15, 20, 25, 30]
+                for(int repAllowed = 5; repAllowed <= 20; repAllowed += 5) // rep allowed [5, 10, 15, 20, 25, 30]
                 {
                     List<int> times = new List<int>();
                     for (int n = 0; n<5; n++ ) // Hoe vaak per parameter, voor average time? 
