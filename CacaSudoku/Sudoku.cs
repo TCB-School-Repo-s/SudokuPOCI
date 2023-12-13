@@ -262,8 +262,6 @@ namespace CacaSudoku
 
         public void IteraredLocalSearch(int s, int repAllowed = 10, bool verbose = false)
         {
-            var watch = new Stopwatch();
-            watch.Start();
             int rep = 0;
             int sDone = 0;
             int lastScore = GetScore(evalMatrix);
@@ -310,16 +308,7 @@ namespace CacaSudoku
                 rep = (score == lastScore) ? rep + 1 : rep = 0;
                 if (verbose) Console.WriteLine($"Score: {score}");
             }
-            //DateTime end = DateTime.Now;
-            //TimeSpan result = end - start;
-            watch.Stop();
-            timeTaken = (int)watch.ElapsedMilliseconds;
-            Console.WriteLine($"Solution found! Time taken: {timeTaken} ms \n");
-        }
-
-        public int TimeTaken
-        {
-            get { return timeTaken; }
+            //Console.WriteLine($"Solution found!");
         }
 
 
