@@ -6,42 +6,14 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Timers;
-using static CacaSudoku.Util;
 
 namespace CacaSudoku
 {
-
-    internal static class Util
-    {
-        public static IEnumerable<String> SplitInParts(this String s, Int32 partLength)
-        {
-            if (s == null)
-                throw new ArgumentNullException(nameof(s));
-            if (partLength <= 0)
-                throw new ArgumentException("Part length has to be positive.", nameof(partLength));
-
-            for (var i = 0; i < s.Length; i += partLength)
-                yield return s.Substring(i, Math.Min(partLength, s.Length - i));
-        }
-
-        public class Pair<T1, T2>
-        {
-
-            public Pair(T1 i, T2 j)
-            {
-                First = i;
-                Second = j;
-            }
-
-            public T1 First { get; set; }
-            public T2 Second { get; set; }
-        }
-    }
-
+    
     internal class Sudoku
     {
 
-        private (int, Boolean)[,] puzzle = new (int, Boolean)[9,9];
+        private (int, Boolean)[,] puzzle = new (int, Boolean)[9, 9];
         private int[,] evalMatrix = new int[2, 9];
         private int timeTaken = 0;
 
@@ -59,16 +31,19 @@ namespace CacaSudoku
         /// <summary>
         /// Method <c>Swap</c> swaps the two given indexes of puzzle p;
         /// If the boolean is False you can swap the indexes.
+        /// It updates the evaluation matrix if the swap has a better/equal score. 
         /// </summary>
         /// <param name="p">Which block you want to swap in</param>
         /// <param name="i">First number you want to swap</param>
         /// <param name="j">Second number you want to swap</param>
+        /// <param name="eval">Allows all swaps to take place regardless of score if set to false</param>
         public void Swap(int p, int i, int j, Boolean eval = true)
 
         {
+            // Transform the locations of the numbers into locations in the specific block in the large 9x9 array.
             if (this.puzzle[p / 3 * 3 + j / 3, p % 3 * 3 + j % 3].Item2 == false)
             {
-                (this.puzzle[p / 3 * 3 + i / 3, p % 3 * 3 + i % 3], this.puzzle[p / 3 * 3 + j / 3, p % 3 * 3 + j % 3]) = (this.puzzle[p / 3 * 3 + j / 3,p % 3 * 3 + j % 3], this.puzzle[p / 3 * 3 + i / 3, p % 3 * 3 + i % 3]);
+                (this.puzzle[p / 3 * 3 + i / 3, p % 3 * 3 + i % 3], this.puzzle[p / 3 * 3 + j / 3, p % 3 * 3 + j % 3]) = (this.puzzle[p / 3 * 3 + j / 3, p % 3 * 3 + j % 3], this.puzzle[p / 3 * 3 + i / 3, p % 3 * 3 + i % 3]);
 
                 int[,] update = Update(p, i, j);
 
@@ -76,9 +51,9 @@ namespace CacaSudoku
                 {
                     (this.puzzle[p / 3 * 3 + i / 3, p % 3 * 3 + i % 3], this.puzzle[p / 3 * 3 + j / 3, p % 3 * 3 + j % 3]) = (this.puzzle[p / 3 * 3 + j / 3, p % 3 * 3 + j % 3], this.puzzle[p / 3 * 3 + i / 3, p % 3 * 3 + i % 3]);
                 }
-                else if(GetScore(update) <= GetScore(evalMatrix) && eval)
+                else if (GetScore(update) <= GetScore(evalMatrix) && eval)
                 {
-                    evalMatrix = (int[,]) update.Clone();
+                    evalMatrix = (int[,])update.Clone();
                 }
                 else
                 {
@@ -89,17 +64,19 @@ namespace CacaSudoku
 
 
         /// <summary>
-        /// 
+        /// Method <c>Evaluate</c> evaluetes the score of the entire sudoku.
+        /// It stores the data in a 2x9 array that has the values for each row and column.
         /// </summary>
         private void Evaluate()
         {
-
+            // calculates the score for each row and stores it in the first row of the evaluation matrix.
             for (int row = 0; row < 9; row++)
             {
                 int[] Row = Enumerable.Range(0, puzzle.GetUpperBound(1) + 1).Select(i => puzzle[row, i].Item1).ToArray();
                 evalMatrix[0, row] = CountIncorrect(Row);
             }
 
+            // calculates the score for each column and stores it in the second row of the evaluation matrix.
             for (int col = 0; col < 9; col++)
             {
                 int[] column = new int[9];
@@ -112,16 +89,20 @@ namespace CacaSudoku
             }
 
         }
-
+        /// <summary>
+        /// Method <c>CountIncorrect</c> calculates the amount of missing numbers in a row or column.
+        /// </summary>
+        /// <param name="RowCol">Which row or column you want to calculate the score of</param>
+        /// <returns></returns>
         public int CountIncorrect(int[] RowCol)
-        {
+        { 
 
             HashSet<int> seen = new HashSet<int>();
             int incorrectCount = 0;
 
-            foreach (var value in RowCol)
+            foreach (var value in RowCol) 
             {
-                if (!seen.Add(value))
+                if (!seen.Add(value)) // if you cannot add an item, meaning it is in the list, it increase the count by one. 
                 {
                     incorrectCount++;
                 }
@@ -130,11 +111,18 @@ namespace CacaSudoku
             return incorrectCount;
         }
 
-        // updates the evaluation
+        /// <summary>
+        /// Method <c>Update</c>  updates the score for the affected rows and colums when a swap takes place.
+        /// </summary>
+        /// <param name="p">Which block was swapped swap in</param>
+        /// <param name="i">First number that was swapped</param>
+        /// <param name="j">Second number that was swapped</param>
+        /// <returns></returns>
         public int[,] Update(int p, int i, int j)
         {
-            int[,] copyEval = (int[,]) evalMatrix.Clone();
+            int[,] copyEval = (int[,])evalMatrix.Clone();
 
+            // transform the value of the puzzle and first swapped number into the corresponding row/col.
             int rowI = p / 3 * 3 + i / 3;
             int columnI = p % 3 * 3 + i % 3;
 
@@ -147,6 +135,7 @@ namespace CacaSudoku
             copyEval[0, rowI] = CountIncorrect(RowI);
             copyEval[1, columnI] = CountIncorrect(ColumnI);
 
+            // transform the value of the puzzle and second swapped number into the corresponding row/col.
             int rowJ = p / 3 * 3 + j / 3;
             int columnJ = p % 3 * 3 + j % 3;
 
@@ -163,6 +152,7 @@ namespace CacaSudoku
 
         /// <summary>
         /// Method <c>Generate</c> randomizes the remaining zero's to random numbers between 1-9 that are not yet in the block.
+        /// At the end it generates the first evaluation matrix.
         /// </summary>
         public void Generate()
         {
@@ -171,18 +161,18 @@ namespace CacaSudoku
             for (int block = 0; block < 9; block++)
             {
                 List<int> availableNumbers = Enumerable.Range(1, 9).ToList();
-
-                for(int k = 0; k < 9; k++)
+                // check which numbers are fixed and remove them from the list.
+                for (int k = 0; k < 9; k++)
                 {
                     if (puzzle[block / 3 * 3 + k / 3, block % 3 * 3 + k % 3].Item2 == true)
                     {
                         availableNumbers.Remove(puzzle[block / 3 * 3 + k / 3, block % 3 * 3 + k % 3].Item1);
                     }
-                    
+
                 }
 
                 for (int i = 0; i < 9; i++)
-                {
+                { // add the remaining numbers in empty spaces at random and remove from the list once added. 
                     if (puzzle[block / 3 * 3 + i / 3, block % 3 * 3 + i % 3].Item2 == false)
                     {
                         int randomIndex = rand.Next(availableNumbers.Count);
@@ -196,7 +186,7 @@ namespace CacaSudoku
             Evaluate();
         }
 
-
+/*
         // Helper method to check if a number is already in the block
         private bool IsNumberInBlock(int blockIndex, int number)
         {
@@ -209,7 +199,7 @@ namespace CacaSudoku
             }
             return false;
         }
-
+*/
 
         //// <summary>
         /// Method <c>FromString</c> generates a sudoku object from a string.
@@ -223,6 +213,7 @@ namespace CacaSudoku
             string[] values = str.Split(' ');
             int index = 0;
 
+            // fill in the numbers in each row, and add a bool to show whether it is a fixed or swappable number.
             for (int i = 0; i < 9; i++)
             {
                 for (int j = 0; j < 9; j++)
@@ -237,58 +228,65 @@ namespace CacaSudoku
             return sudoku;
         }
 
-
-        public void Print() {
+        // prints the entire sudoku with axis to help determine where potential issues were.
+        public void Print()
+        {
             Console.WriteLine("*|-A-|-B-|-C-|-D-|-E-|-F-|-G-|-H-|-I-|*");
-            Console.WriteLine($"0| {puzzle[0,0].Item1} | {puzzle[0,1].Item1} | {puzzle[0,2].Item1} | {puzzle[0,3].Item1} | {puzzle[0,4].Item1} | {puzzle[0,5].Item1} | {puzzle[0,6].Item1} | {puzzle[0,7].Item1} | {puzzle[0,8].Item1} |");
+            Console.WriteLine($"0| {puzzle[0, 0].Item1} | {puzzle[0, 1].Item1} | {puzzle[0, 2].Item1} | {puzzle[0, 3].Item1} | {puzzle[0, 4].Item1} | {puzzle[0, 5].Item1} | {puzzle[0, 6].Item1} | {puzzle[0, 7].Item1} | {puzzle[0, 8].Item1} |");
             Console.WriteLine(" |---|---|---|---|---|---|---|---|---|");
-            Console.WriteLine($"0| {puzzle[1, 0].Item1} | {puzzle[1, 1].Item1} | {puzzle[1, 2].Item1} | {puzzle[1, 3].Item1} | {puzzle[1, 4].Item1} | {puzzle[1, 5].Item1} | {puzzle[1, 6].Item1} | {puzzle[1, 7].Item1} | {puzzle[1, 8].Item1} |");
+            Console.WriteLine($"1| {puzzle[1, 0].Item1} | {puzzle[1, 1].Item1} | {puzzle[1, 2].Item1} | {puzzle[1, 3].Item1} | {puzzle[1, 4].Item1} | {puzzle[1, 5].Item1} | {puzzle[1, 6].Item1} | {puzzle[1, 7].Item1} | {puzzle[1, 8].Item1} |");
             Console.WriteLine(" |---|---|---|---|---|---|---|---|---|");
-            Console.WriteLine($"0| {puzzle[2, 0].Item1} | {puzzle[2, 1].Item1} | {puzzle[2, 2].Item1} | {puzzle[2, 3].Item1} | {puzzle[2, 4].Item1} | {puzzle[2, 5].Item1} | {puzzle[2, 6].Item1} | {puzzle[2, 7].Item1} | {puzzle[2, 8].Item1} |");
+            Console.WriteLine($"2| {puzzle[2, 0].Item1} | {puzzle[2, 1].Item1} | {puzzle[2, 2].Item1} | {puzzle[2, 3].Item1} | {puzzle[2, 4].Item1} | {puzzle[2, 5].Item1} | {puzzle[2, 6].Item1} | {puzzle[2, 7].Item1} | {puzzle[2, 8].Item1} |");
             Console.WriteLine(" |---|---|---|---|---|---|---|---|---|");
-            Console.WriteLine($"0| {puzzle[3, 0].Item1} | {puzzle[3, 1].Item1} | {puzzle[3, 2].Item1} | {puzzle[3, 3].Item1} | {puzzle[3, 4].Item1} | {puzzle[3, 5].Item1} | {puzzle[3, 6].Item1} | {puzzle[3, 7].Item1} | {puzzle[3, 8].Item1} |");
+            Console.WriteLine($"3| {puzzle[3, 0].Item1} | {puzzle[3, 1].Item1} | {puzzle[3, 2].Item1} | {puzzle[3, 3].Item1} | {puzzle[3, 4].Item1} | {puzzle[3, 5].Item1} | {puzzle[3, 6].Item1} | {puzzle[3, 7].Item1} | {puzzle[3, 8].Item1} |");
             Console.WriteLine(" |---|---|---|---|---|---|---|---|---|");
-            Console.WriteLine($"0| {puzzle[4, 0].Item1} | {puzzle[4, 1].Item1} | {puzzle[4, 2].Item1} | {puzzle[4, 3].Item1} | {puzzle[4, 4].Item1} | {puzzle[4, 5].Item1} | {puzzle[4, 6].Item1} | {puzzle[4, 7].Item1} | {puzzle[4, 8].Item1} |");
+            Console.WriteLine($"4| {puzzle[4, 0].Item1} | {puzzle[4, 1].Item1} | {puzzle[4, 2].Item1} | {puzzle[4, 3].Item1} | {puzzle[4, 4].Item1} | {puzzle[4, 5].Item1} | {puzzle[4, 6].Item1} | {puzzle[4, 7].Item1} | {puzzle[4, 8].Item1} |");
             Console.WriteLine(" |---|---|---|---|---|---|---|---|---|");
-            Console.WriteLine($"0| {puzzle[5, 0].Item1} | {puzzle[5, 1].Item1} | {puzzle[5, 2].Item1} | {puzzle[5, 3].Item1} | {puzzle[5, 4].Item1} | {puzzle[5, 5].Item1} | {puzzle[5, 6].Item1} | {puzzle[5, 7].Item1} | {puzzle[5, 8].Item1} |");
+            Console.WriteLine($"5| {puzzle[5, 0].Item1} | {puzzle[5, 1].Item1} | {puzzle[5, 2].Item1} | {puzzle[5, 3].Item1} | {puzzle[5, 4].Item1} | {puzzle[5, 5].Item1} | {puzzle[5, 6].Item1} | {puzzle[5, 7].Item1} | {puzzle[5, 8].Item1} |");
             Console.WriteLine(" |---|---|---|---|---|---|---|---|---|");
-            Console.WriteLine($"0| {puzzle[6, 0].Item1} | {puzzle[6, 1].Item1} | {puzzle[6, 2].Item1} | {puzzle[6, 3].Item1} | {puzzle[6, 4].Item1} | {puzzle[6, 5].Item1} | {puzzle[6, 6].Item1} | {puzzle[6, 7].Item1} | {puzzle[6, 8].Item1} |");
+            Console.WriteLine($"6| {puzzle[6, 0].Item1} | {puzzle[6, 1].Item1} | {puzzle[6, 2].Item1} | {puzzle[6, 3].Item1} | {puzzle[6, 4].Item1} | {puzzle[6, 5].Item1} | {puzzle[6, 6].Item1} | {puzzle[6, 7].Item1} | {puzzle[6, 8].Item1} |");
             Console.WriteLine(" |---|---|---|---|---|---|---|---|---|");
-            Console.WriteLine($"0| {puzzle[7, 0].Item1} | {puzzle[7, 1].Item1} | {puzzle[7, 2].Item1} | {puzzle[7, 3].Item1} | {puzzle[7, 4].Item1} | {puzzle[7, 5].Item1} | {puzzle[7, 6].Item1} | {puzzle[7, 7].Item1} | {puzzle[7, 8].Item1} |");
+            Console.WriteLine($"7| {puzzle[7, 0].Item1} | {puzzle[7, 1].Item1} | {puzzle[7, 2].Item1} | {puzzle[7, 3].Item1} | {puzzle[7, 4].Item1} | {puzzle[7, 5].Item1} | {puzzle[7, 6].Item1} | {puzzle[7, 7].Item1} | {puzzle[7, 8].Item1} |");
             Console.WriteLine(" |---|---|---|---|---|---|---|---|---|");
-            Console.WriteLine($"0| {puzzle[8, 0].Item1} | {puzzle[8, 1].Item1} | {puzzle[8, 2].Item1} | {puzzle[8, 3].Item1} | {puzzle[8, 4].Item1} | {puzzle[8, 5].Item1} | {puzzle[8, 6].Item1} | {puzzle[8, 7].Item1} | {puzzle[8, 8].Item1} |");
+            Console.WriteLine($"8| {puzzle[8, 0].Item1} | {puzzle[8, 1].Item1} | {puzzle[8, 2].Item1} | {puzzle[8, 3].Item1} | {puzzle[8, 4].Item1} | {puzzle[8, 5].Item1} | {puzzle[8, 6].Item1} | {puzzle[8, 7].Item1} | {puzzle[8, 8].Item1} |");
             Console.WriteLine("*|---|---|---|---|---|---|---|---|---|");
         }
-
-        public void IteraredLocalSearch(int s, int repAllowed = 10, bool verbose = false)
+        /// <summary>
+        /// Method <c>IteratedLocalSearch</c> is the algorithm that find a solution.
+        /// It keeps track of the last score in order for it to start a random walk if repeated to often.
+        /// </summary>
+        /// <param name="s">The length of the random walk</param>
+        /// <param name="repAllowed">The allowed amount of repetitions of a score</param>
+        /// <param name="verbose">Prints the score if set to true</param>
+        public void IteratedLocalSearch(int s, int repAllowed = 10, bool verbose = false)
         {
             int rep = 0;
             int sDone = 0;
             int lastScore = GetScore(evalMatrix);
             Random rd = new Random();
+            // stops when the score is 0 since the sudoku is solved then.
             while (GetScore(evalMatrix) != 0)
             {
-
                 lastScore = GetScore(evalMatrix);
                 int blokIndex = rd.Next(0, 9);
 
-                if (rep < repAllowed)
+                if (rep < repAllowed) // checks if rep exceeds repAllowed to start random walk if it does.
                 {
                     for (int i = 0; i < 9; i++)
                     {
-                        if (puzzle[blokIndex / 3 * 3 + i / 3, blokIndex % 3 * 3 + i % 3].Item2 == false)
+                        if (puzzle[blokIndex / 3 * 3 + i / 3, blokIndex % 3 * 3 + i % 3].Item2 == false) // check if the first number is not fixed.
                         {
                             for (int j = 0; j < 9; j++)
                             {
-                                Swap(blokIndex, i, j);
+                                Swap(blokIndex, i, j); // tries out each swap combination and uses the best one
                             }
                         }
                     }
-                   
+
                 }
                 else
                 {
-                    if(sDone <= s)
+                    if (sDone <= s) // continues as long as length of random walk is not reached.
                     {
                         for (int i = 0; i < 9; i++)
                         {
@@ -296,22 +294,26 @@ namespace CacaSudoku
                             {
                                 for (int j = 0; j < 9; j++)
                                 {
-                                    Swap(blokIndex, i, j, false);
+                                    Swap(blokIndex, i, j, false); // allows all swaps regardless of score
                                 }
                             }
                         }
-                        sDone = (sDone == s) ? sDone = 0 : sDone+1;
+                        sDone = (sDone == s) ? sDone = 0 : sDone + 1;
                     }
                 }
 
                 int score = GetScore(evalMatrix);
-                rep = (score == lastScore) ? rep + 1 : rep = 0;
-                if (verbose) Console.WriteLine($"Score: {score}");
+                rep = (score == lastScore) ? rep + 1 : rep = 0; // compares the current score to the last score and increases rep if they are equal.
+                if (verbose) Console.WriteLine($"Score: {score}"); // prints the score if verbose = true
             }
             //Console.WriteLine($"Solution found!");
         }
 
-
+        /// <summary>
+        /// Method <c>GetScore</c> sums the score for the 2x9 evaluation array.
+        /// </summary>
+        /// <param name="arr">the evaluation array to be summed</param>
+        /// <returns></returns>
         public int GetScore(int[,] arr)
         {
             int sum = 0;
