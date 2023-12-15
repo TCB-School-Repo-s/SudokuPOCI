@@ -18,14 +18,14 @@ namespace CacaSudoku
             /* We testen de snelheid en efficientie van het algoritme voor verschillende waarden van s, repAllowed 
              * en we voeren het voor elke sudoku 10 keer uit om tot een goed gemiddelde te komen van hoelang hij er over doet om het op te lossen.
              * */
-            for (int s = 2; s <= 1024; s) // s waardes [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+            for (int s = 32; s <= 32; s = s*2) // s waardes [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
             {
-                for(int repAllowed = 5; repAllowed <= 20; repAllowed += 5) // rep allowed [5, 10, 15, 20, 25, 30]
+                for(int repAllowed = 15; repAllowed <= 20; repAllowed += 5) // rep allowed [5, 10, 15, 20, 25, 30]
                 {
                     List<int> times = new List<int>();
                     for (int n = 0; n<5; n++ ) // Hoe vaak per parameter, voor average time? 
                     {
-                        Sudoku sud = Sudoku.FromString("2 0 0 0 8 0 3 0 0 0 6 0 0 7 0 0 8 4 0 3 0 5 0 0 2 0 9 0 0 0 1 0 5 4 0 8 0 0 0 0 0 0 0 0 0 4 0 2 7 0 6 0 0 0 3 0 1 0 0 7 0 4 0 7 2 0 0 4 0 0 6 0 0 0 4 0 1 0 0 0 3");
+                        Sudoku sud = Sudoku.FromString("0 0 0 0 0 0 9 0 7 0 0 0 4 2 0 1 8 0 0 0 0 7 0 5 0 2 6 1 0 0 9 0 4 0 0 0 0 5 0 0 0 0 0 4 0 0 0 0 5 0 7 0 0 9 9 2 0 1 0 8 0 0 0 0 3 4 0 5 9 0 0 0 5 0 7 0 0 0 0 0 0\r\n");
 
                         sud.Generate();
                         Stopwatch stopwatch = new Stopwatch();
